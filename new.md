@@ -913,3 +913,131 @@ public class SparkJoinExample {
 
 
 # sql
+
+
+```java
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class SplitTextFile {
+
+    public static void main(String[] args) {
+        String inputFilePath = "input.txt"; // Путь к исходному файлу
+        String outputFolderPath = "output/"; // Папка для сохранения выходных файлов
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(inputFilePath));
+            StringBuilder sb = new StringBuilder();
+            String line;
+
+            int fileCounter = 1;
+            int charCount = 0;
+            while ((line = reader.readLine()) != null) {
+                if (charCount + line.length() <= 3000) {
+                    sb.append(line).append("\n");
+                    charCount += line.length();
+                } else {
+                    saveToFile(outputFolderPath + "output_" + fileCounter + ".txt", sb.toString());
+                    sb.setLength(0);
+                    charCount = 0;
+                    sb.append(line).append("\n");
+                    charCount += line.length();
+                    fileCounter++;
+                }
+            }
+
+            if (sb.length() > 0) {
+                saveToFile(outputFolderPath + "output_" + fileCounter + ".txt", sb.toString());
+            }
+
+            reader.close();
+            System.out.println("Файлы успешно созданы.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void saveToFile(String filePath, String content) throws IOException {
+        FileWriter writer = new FileWriter(filePath);
+        writer.write(content);
+        writer.close();
+    }
+}
+
+
+import java.io.*;
+
+public class CombineTextFiles {
+
+    public static void main(String[] args) {
+        String folderPath = "путь/к/папке/с/файлами"; // Путь к папке с .txt файлами
+        String outputFilePath = "combined.txt"; // Путь для сохранения объединенного текста
+
+        try {
+            File folder = new File(folderPath);
+            File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".txt"));
+
+            if (files != null && files.length > 0) {
+                sortFilesByNumber(files);
+
+                StringBuilder combinedText = new StringBuilder();
+
+                for (File file : files) {
+                    BufferedReader reader = new BufferedReader(new FileReader(file));
+                    String line;
+
+                    while ((line = reader.readLine()) != null) {
+                        combinedText.append(line).append("\n");
+                    }
+
+                    reader.close();
+                }
+
+                writeToFile(outputFilePath, combinedText.toString());
+                System.out.println("Текст успешно объединен и сохранен в файле: " + outputFilePath);
+            } else {
+                System.out.println("В папке нет .txt файлов для объединения.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void sortFilesByNumber(File[] files) {
+        // Сортировка файлов по числовому значению в их именах
+        for (int i = 0; i < files.length - 1; i++) {
+            for (int j = i + 1; j < files.length; j++) {
+                int numberI = extractNumber(files[i].getName());
+                int numberJ = extractNumber(files[j].getName());
+
+                if (numberI > numberJ) {
+                    File temp = files[i];
+                    files[i] = files[j];
+                    files[j] = temp;
+                }
+            }
+        }
+    }
+
+    private static int extractNumber(String fileName) {
+        // Извлечение числа из имени файла
+        int number;
+        try {
+            String num = fileName.replaceAll("[^0-9]", "");
+            number = Integer.parseInt(num);
+        } catch (NumberFormatException e) {
+            number = Integer.MAX_VALUE; // Если не удалось извлечь число, помещаем файл в конец
+        }
+        return number;
+    }
+
+    private static void writeToFile(String filePath, String content) throws IOException {
+        FileWriter writer = new FileWriter(filePath);
+        writer.write(content);
+        writer.close();
+    }
+}
+
+```
